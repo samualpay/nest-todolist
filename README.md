@@ -31,8 +31,23 @@ $ nest g service user
 
 ## add class validator and class-transformer for validation pipe
 
-```
+```bash
 $ npm i --save class-validator class-transformer
+```
+
+## add DTO for create user at user/dto/create-user.dto.ts
+
+```typescript
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+export class CreateUserDTO {
+  @IsString()
+  @IsEmail()
+  readonly account: string;
+  @IsString()
+  @MinLength(6, { message: 'password is too short' })
+  readonly password: string;
+}
 ```
 
 ## Running the app
