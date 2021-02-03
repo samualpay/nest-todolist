@@ -6,10 +6,22 @@
 $ sudo npm i -g @nestjs/cli
 ```
 
+## install typeorm cli
+
+```bash
+$ sudo npm i -g typeorm
+```
+
 ## create nestjs project
 
 ```bash
 $ nest new nest-todolist
+```
+
+## install typeorm
+
+```bash
+$ npm i @nestjs/typeorm typeorm
 ```
 
 ## add todolist module controller service
