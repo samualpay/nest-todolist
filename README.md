@@ -12,22 +12,27 @@ $ sudo npm i -g @nestjs/cli
 $ nest new nest-todolist
 ```
 
-## add todolist module
+## add todolist module controller service
 
 ```bash
 $ nest g module todolist
-```
-
-## add todolist controller
-
-```bash
 $ nest g controller todolist
+$ nest g service todolist
 ```
 
-## add todolist service
+## add user module controller service
 
 ```bash
-$ nest g service todolist
+$ nest g module user
+$ nest g controller user
+$ nest g service user
+
+```
+
+## add class validator and class-transformer for validation pipe
+
+```
+$ npm i --save class-validator class-transformer
 ```
 
 ## Running the app
