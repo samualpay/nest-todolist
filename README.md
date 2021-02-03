@@ -9,7 +9,25 @@ $ sudo npm i -g @nestjs/cli
 ## create nestjs project
 
 ```bash
-$ nest new project-name
+$ nest new nest-todolist
+```
+
+## add todolist module
+
+```bash
+$ nest g module todolist
+```
+
+## add todolist controller
+
+```bash
+$ nest g controller todolist
+```
+
+## add todolist service
+
+```bash
+$ nest g service todolist
 ```
 
 ## Running the app
