@@ -24,6 +24,54 @@ $ nest new nest-todolist
 $ npm i @nestjs/typeorm typeorm
 ```
 
+## install mysql
+
+```bash
+$ npm i mysql2
+```
+
+## install config
+
+```bash
+$ npm i --save @nesgtjs/config
+```
+
+## add Custom configuration files config/configuration.ts
+
+```typescript
+export default () => ({
+  port: parseInt(process.env.PORT, 10) || 3000,
+  database: {
+    username: 'root',
+    password: 'root',
+    database: 'todolist',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.DATABASE_PORT, 10) || 3306,
+  },
+});
+```
+
+## add configuration in app.module.tw
+
+```typescript
+import configuration from './config/configuration';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+    }),
+  ],
+})
+```
+
+## Using in the main.ts
+
+```typescript
+const configService = app.get(ConfigService);
+const port = configService.get('port');
+```
+
 ## add todolist module controller service
 
 ```bash
