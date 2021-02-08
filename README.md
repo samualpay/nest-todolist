@@ -65,11 +65,36 @@ import configuration from './config/configuration';
 })
 ```
 
-## Using in the main.ts
+## Using configService in the main.ts
 
 ```typescript
 const configService = app.get(ConfigService);
 const port = configService.get('port');
+```
+
+## Using TypeOrmModule in the app.module.ts
+
+```typescript
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('database.host'),
+        port: configService.get('database.port'),
+        username: configService.get('database.username'),
+        password: configService.get('database.password'),
+        database: configService.get('database.database'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
+    }),
+  ]
+})
 ```
 
 ## add todolist module controller service
