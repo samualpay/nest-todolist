@@ -156,6 +156,38 @@ export class InitUser1614039944079 implements MigrationInterface {
 }
 ```
 
+## add user repository at repository/UserRepository.ts
+
+```typescript
+import { EntityRepository, Repository } from 'typeorm';
+import { User } from '../entity/user.entity';
+
+@EntityRepository(User)
+export class UserRepository extends Repository<User> {}
+```
+
+## import UserRepositoryc into UserModule
+
+```typescript
+@Module({
+  imports: [TypeOrmModule.forFeature([UserRepository])],
+  controllers: [UserController],
+  providers: [UserService],
+})
+```
+
+## inject userRepository into userService
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { UserRepository } from '../repository/UserRepository';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly userRepository: UserRepository) {}
+}
+```
+
 ## add todolist module controller service
 
 ```bash
@@ -244,6 +276,24 @@ async function bootstrap() {
   await app.listen(3000);
 }
 bootstrap();
+```
+
+## add create user api
+
+### add create user for service
+
+```typescript
+async createUser({ account, password }: CreateUserDTO) {
+    let user = this.userRepository.create({ account, password });
+    user = await this.userRepository.save(user);
+    return user;
+  }
+```
+
+### add create user for controller
+
+```typescript
+
 ```
 
 ## Running the app
