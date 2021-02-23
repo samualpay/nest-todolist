@@ -22,7 +22,9 @@ import { UserModule } from './user/user.module';
         password: configService.get('database.password'),
         database: configService.get('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        migrations: [__dirname + '/migration/*{.ts,.js}'],
+        migrationsRun: false, //使用migration時開啟,適合上線後
+        synchronize: true, //使用自動sync與migrationsRun只能留一個,適合上線前
       }),
       inject: [ConfigService],
     }),

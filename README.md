@@ -89,7 +89,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('database.password'),
         database: configService.get('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        migrations: [__dirname + '/migration/*{.ts,.js}'],
+        migrationsRun: false, //使用migration時開啟,適合上線後
+        synchronize: true, //使用自動sync與migrationsRun只能留一個,適合上線前
       }),
       inject: [ConfigService],
     }),
@@ -127,6 +129,30 @@ export class User {
   createAt: Date;
   @UpdateDateColumn({ type: 'timestamp' })
   updateAt: Date;
+}
+```
+
+## add migration file(Option should set migrationsRun:true)
+
+```bash
+$ typeorm migration:create -n InitUser -d src/migration
+```
+
+```typescript
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class InitUser1614039944079 implements MigrationInterface {
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // RUN
+    await queryRunner.query(
+      "Insert Into `user` (`account`,`password`) values('admin','admin')",
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // REVERT
+    await queryRunner.query("Delete from `user` Where `account` = 'admin'");
+  }
 }
 ```
 
