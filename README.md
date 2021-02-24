@@ -429,3 +429,7 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## 參考資料
+
+- [https://docs.nestjs.cn/7/firststeps](https://docs.nestjs.cn/7/firststeps)
