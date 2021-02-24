@@ -8,6 +8,8 @@ import configuration from './config/configuration';
 import { AllExceptionsFilter } from './filter/any-exception.filter';
 import { TodolistModule } from './todolist/todolist.module';
 import { UserModule } from './user/user.module';
+import { LoggerModule } from 'nestjs-pino';
+import { v4 } from 'uuid';
 
 @Module({
   imports: [
@@ -29,6 +31,26 @@ import { UserModule } from './user/user.module';
         synchronize: true, //使用自動sync與migrationsRun只能留一個,適合上線前
       }),
       inject: [ConfigService],
+    }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (ConfigService: ConfigService) => ({
+        pinoHttp: {
+          level: ConfigService.get('log.level'),
+          genReqId: function (req) {
+            return v4();
+          },
+          prettyPrint:
+            ConfigService.get<string>('log.pretty') === 'true'
+              ? {
+                  colorize: true,
+                  levelFirst: true,
+                  translateTime: 'UTC:yyyy/mm/dd HH:MM:ss Z',
+                }
+              : false,
+        },
+      }),
     }),
   ],
   controllers: [AppController],

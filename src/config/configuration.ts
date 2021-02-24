@@ -7,4 +7,8 @@ export default () => ({
     host: process.env.DATABASE_HOST || 'localhost',
     port: parseInt(process.env.DATABASE_PORT, 10) || 3306,
   },
+  log: {
+    level: process.env.LOG_LEVEL || 'debug',
+    pretty: process.env.LOG_PRETTY || 'true',
+  },
 });

@@ -36,6 +36,18 @@ $ npm i mysql2
 $ npm i --save @nesgtjs/config
 ```
 
+## install nestjs-pino
+
+```bash
+$ npm i nestjs-pino pino-pretty
+```
+
+## install uuid
+
+```bash
+$ npm i uuid @types/uuid
+```
+
 ## add Custom configuration files config/configuration.ts
 
 ```typescript
@@ -47,6 +59,10 @@ export default () => ({
     database: 'todolist',
     host: process.env.DATABASE_HOST || 'localhost',
     port: parseInt(process.env.DATABASE_PORT, 10) || 3306,
+  },
+  log: {
+    level: process.env.LOG_LEVEL || 'debug',
+    pretty: process.env.LOG_PRETTY || 'true',
   },
 });
 ```
@@ -109,6 +125,59 @@ providers: [
     AppService,
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
+```
+
+## Using LoggerModule in the app.module.ts
+
+```typescript
+@Module({
+  imports: [
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (ConfigService: ConfigService) => ({
+        pinoHttp: {
+          level: ConfigService.get('log.level'),
+          genReqId: function (req) {
+            return v4();
+          },
+          prettyPrint:
+            ConfigService.get<string>('log.pretty') === 'true'
+              ? {
+                  colorize: true,
+                  levelFirst: true,
+                  translateTime: 'UTC:yyyy/mm/dd HH:MM:ss Z',
+                }
+              : false,
+        },
+      }),
+    }),
+    ...
+  ]
+```
+
+## Using Logger in the app.controller.ts
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
+import { AppService } from './app.service';
+
+@Controller()
+export class AppController {
+  constructor(
+    private readonly appService: AppService,
+    private readonly logger: PinoLogger,
+  ) {
+    logger.setContext(AppController.name);
+  }
+
+  @Get()
+  getHello(): string {
+    this.logger.info('getHello');
+    return this.appService.getHello();
+  }
+}
 ```
 
 ## Using TypeOrmModule in the app.module.ts
