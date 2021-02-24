@@ -11,4 +11,7 @@ export default () => ({
     level: process.env.LOG_LEVEL || 'debug',
     pretty: process.env.LOG_PRETTY || 'true',
   },
+  swagger: {
+    visible: process.env.SWAGGER_VISIBLE || 'true',
+  },
 });

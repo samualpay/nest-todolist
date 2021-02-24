@@ -48,6 +48,12 @@ $ npm i nestjs-pino pino-pretty
 $ npm i uuid @types/uuid
 ```
 
+## install swagger
+
+```bash
+$ npm i @nestjs/swagger swagger-ui-express
+```
+
 ## add Custom configuration files config/configuration.ts
 
 ```typescript
@@ -63,6 +69,9 @@ export default () => ({
   log: {
     level: process.env.LOG_LEVEL || 'debug',
     pretty: process.env.LOG_PRETTY || 'true',
+  },
+  swagger: {
+    visible: process.env.SWAGGER_VISIBLE || 'true',
   },
 });
 ```
@@ -86,6 +95,20 @@ import configuration from './config/configuration';
 ```typescript
 const configService = app.get(ConfigService);
 const port = configService.get('port');
+```
+
+## Using swaggerModule in the main.ts
+
+```typescript
+if (configService.get<string>('swagger.visible') === 'true') {
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('nest todolist')
+    .setDescription('nest todolist swagger')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api-docs', app, document);
+}
 ```
 
 ## add exception filter filter/any-exception.filter.ts
@@ -388,20 +411,62 @@ bootstrap();
 
 ## add create user api
 
+### add create-user.dto
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+export class CreateUserDTO {
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  readonly account: string;
+  @ApiProperty()
+  @IsString()
+  @MinLength(6, { message: 'password is too short' })
+  readonly password: string;
+}
+```
+
+### add user dto
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNumber, IsString, MinLength } from 'class-validator';
+
+export class UserDTO {
+  @ApiProperty()
+  @IsNumber()
+  readonly id: number;
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  readonly account: string;
+}
+```
+
 ### add create user for service
 
 ```typescript
-async createUser({ account, password }: CreateUserDTO) {
+async createUser({ account, password }: CreateUserDTO): Promise<UserDTO> {
     let user = this.userRepository.create({ account, password });
     user = await this.userRepository.save(user);
-    return user;
+    return { id: user.id, account: user.account };
   }
 ```
 
 ### add create user for controller
 
 ```typescript
-
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+  @Post()
+  @ApiResponse({ status: 201, type: UserDTO, description: 'Create user' })
+  async create(@Body() createUserDTO: CreateUserDTO) {
+    return this.userService.createUser(createUserDTO);
+  }
+}
 ```
 
 ## Running the app
