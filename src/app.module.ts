@@ -56,7 +56,10 @@ import { v4 } from 'uuid';
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
   ],
 })
 export class AppModule {}

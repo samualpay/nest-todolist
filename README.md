@@ -111,36 +111,6 @@ if (configService.get<string>('swagger.visible') === 'true') {
 }
 ```
 
-## add exception filter filter/any-exception.filter.ts
-
-```typescript
-import {
-  ArgumentsHost,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-
-export class AllExceptionsFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    });
-  }
-}
-```
-
 ## Using exception filter in app.module.ts
 
 ```typescript
@@ -199,6 +169,46 @@ export class AppController {
   getHello(): string {
     this.logger.info('getHello');
     return this.appService.getHello();
+  }
+}
+```
+
+## add exception filter filter/any-exception.filter.ts
+
+```typescript
+import {
+  ArgumentsHost,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { PinoLogger } from 'nestjs-pino';
+@Injectable()
+export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(private logger: PinoLogger) {
+    logger.setContext(AllExceptionsFilter.name);
+  }
+  catch(exception: any, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    let status = 400;
+    let message = exception.message;
+    let stack = '';
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      this.logger.warn({ message });
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      stack = exception.stack;
+      this.logger.error({ message, stack });
+    }
+    response.status(status).json({
+      statusCode: status,
+      message,
+      stack,
+    });
   }
 }
 ```
