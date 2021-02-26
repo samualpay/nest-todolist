@@ -12,4 +12,8 @@ export class UserService {
     user = await this.userRepository.save(user);
     return { id: user.id, account: user.account };
   }
+  async findUserByAccount(account: string) {
+    let user = await this.userRepository.findOne({ account });
+    return user;
+  }
 }

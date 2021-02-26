@@ -10,6 +10,7 @@ import { TodolistModule } from './todolist/todolist.module';
 import { UserModule } from './user/user.module';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 } from 'uuid';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { v4 } from 'uuid';
         },
       }),
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

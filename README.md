@@ -479,6 +479,206 @@ export class UserController {
 }
 ```
 
+## add login auth api
+
+### install passport
+
+```bash
+$ npm install --save @nestjs/passport passport passport-local
+$ npm install --save-dev @types/passport-local
+```
+
+### create auth module & service
+
+```bash
+$ nest g module auth
+$ nest g controller auth
+$ nest g service auth
+```
+
+### add findUserByAccount in userService
+
+```typescript
+async findUserByAccount(account: string) {
+    let user = await this.userRepository.findOne({ account });
+    return user;
+  }
+```
+
+### export userService in userModule
+
+```typescript
+@Module({
+  ...
+exports: [UserService]
+})
+```
+
+### add valiateUser function in authService
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { UserService } from '../user/user.service';
+
+@Injectable()
+export class AuthService {
+  constructor(private readonly userService: UserService) {}
+  async validateUser(account: string, password: string) {
+    const user = await this.userService.findUserByAccount(account);
+    if (user && user.password === password) {
+      return user;
+    }
+    return null;
+  }
+}
+```
+
+### import userModule in authModule
+
+```typescript
+import { Module } from '@nestjs/common';
+import { UserModule } from '../user/user.module';
+import { AuthService } from './auth.service';
+
+@Module({
+  imports: [UserModule],
+  providers: [AuthService],
+})
+export class AuthModule {}
+```
+
+### add local strategy auth/local.strategy.ts
+
+```typescript
+import { Strategy } from 'passport-local';
+import { PassportStrategy } from '@nestjs/passport';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+
+@Injectable()
+export class LocalStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly authService: AuthService) {
+    super({ usernameField: 'account' }); //change default column username -> account
+  }
+
+  async validate(account: string, password: string): Promise<any> {
+    const user = await this.authService.validateUser(account, password);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return user;
+  }
+}
+```
+
+### use LocalStrategy in auth module
+
+```typescript
+import { Module } from '@nestjs/common';
+import { UserModule } from '../user/user.module';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './local.strategy';
+
+@Module({
+  imports: [UserModule, PassportModule],
+  providers: [AuthService, LocalStrategy],
+  controllers: [AuthController],
+  exports: [AuthService],
+})
+export class AuthModule {}
+```
+
+### add LocalAuthGuard auth/local-auth.guard.ts
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class LocalAuthGuard extends AuthGuard('local') {}
+```
+
+### install jwt
+
+```bash
+$ npm i @nestjs/jwt passport-jwt
+$ npm i @types/passport-jwt --save-dev
+```
+
+### add login dto
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+export class LoginDTO {
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  readonly account: string;
+  @ApiProperty()
+  @IsString()
+  @MinLength(6, { message: 'password is too short' })
+  readonly password: string;
+}
+```
+
+### add login response dto
+
+```typescript
+import { ApiProperty } from '@nestjs/swagger';
+
+export class LoginResponseDTO {
+  @ApiProperty()
+  readonly token: string;
+}
+```
+
+### add login funtion to authService
+
+```typescript
+async login(user: User): Promise<LoginResponseDTO> {
+    const payload = { account: user.account, sub: user.id };
+    return {
+      token: this.jwtService.sign(payload),
+    };
+  }
+```
+
+### add login api and use localAuthGuard in auth controller
+
+```typescript
+@UseGuards(LocalAuthGuard)
+  @Post('login')
+  @ApiBody({ type: LoginDTO })
+  @HttpCode(200)
+  @ApiResponse({
+    status: 200,
+    type: LoginResponseDTO,
+    description: 'Login Success',
+  })
+  async login(@Request() req) {
+    return this.authService.login(req.user);
+  }
+
+```
+
+### using JwtModule in auth module
+
+```typescript
+JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('jwt.secret');
+        const expiresIn = configService.get<string>('jwt.expires') + 's';
+        return { secret, signOptions: { expiresIn } };
+      },
+    }),
+```
+
 ## Running the app
 
 ```bash

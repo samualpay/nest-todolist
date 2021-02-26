@@ -14,4 +14,8 @@ export default () => ({
   swagger: {
     visible: process.env.SWAGGER_VISIBLE || 'true',
   },
+  jwt: {
+    secret: process.env.JWT_SECRET || '31qaz2wsx',
+    expires: process.env.JWT_EXPIRES || '60',
+  },
 });
